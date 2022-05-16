@@ -6,9 +6,9 @@ Al iniciar la aplicación por defecto muestra la información del clima, según 
 ## Tecnologias
 Realizado con react-native, para los estilos se utilizo native-base.
 
-###Instalación
+### Instalación
 npm install
 
-###Ejecución de la aplicación
+### Ejecución de la aplicación
 npm start
 npm run android
