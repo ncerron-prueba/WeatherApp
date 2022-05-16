@@ -8,44 +8,76 @@
 
 import React, {useEffect, useState} from 'react';
 
-import {SafeAreaView, StyleSheet, View} from 'react-native';
-import {NativeBaseProvider, Text, Box, Button, Input} from 'native-base';
-const App = () => {
-  const [busqueda, guardarBusqueda] = useState('Buenos Aires');
-  const onSubmit = async () => {
-    const key = '9bb9ebb7fa795919d30b50db36d46501';
-    const url = `https://api.openweathermap.org/data/2.5/weather?q=${busqueda}&appid=${key}`;
-    console.log(url, 'llllllllllllllll');
-    const respuesta = await fetch(url);
-    const resultado = await respuesta.json();
-    console.log(resultado, 'ásdf');
+import {Alert, PermissionsAndroid} from 'react-native';
+import {NativeBaseProvider, Box, Button, Input, Text} from 'native-base';
 
-    //error
-    /* {"cod": "404", "message": "city not found"} ásdf */
+import {fetchData, KEY} from './utils';
+import GetLocation from 'react-native-get-location';
+import {Card} from './components';
+
+const App = () => {
+  const [search, setSearch] = useState('');
+  const [weatherInfo, setWeatherInfo] = useState();
+
+  const onSubmit = async () => {
+    const rta = await fetchData(search, KEY);
+    setWeatherInfo(rta);
+
+    setSearch('');
   };
 
   useEffect(() => {
-    const key = '9bb9ebb7fa795919d30b50db36d46501';
-    const url = `https://api.openweathermap.org/data/2.5/weather?q=${busqueda}&appid=${key}`;
-    console.log(url, 'llllllllllllllll');
+    const getLocation = async key => {
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+        );
+        console.log(granted);
+        if (!granted) {
+          return Alert.alert(
+            'Permissions needed',
+            'This app does not currently have permission to access your location',
+            [{text: 'Ok', style: 'cancel'}],
+          );
+        } else {
+          await GetLocation.getCurrentPosition({
+            enableHighAccuracy: true,
+            timeout: 15000,
+          }).then(async location => {
+            console.log(location, 'sfsdff');
 
-    async function fetchData() {
-      const respuesta = await fetch(url);
-      const resultado = await respuesta.json();
-      console.log(resultado, 'ásdf');
-    }
-    fetchData();
+            const url = `https://api.openweathermap.org/data/2.5/weather?lat=${location.latitude}&lon=${location.longitude}&appid=${key}&units=metric&lang=sp`;
+            const respuesta = await fetch(url);
+            const resultado = await respuesta.json();
+            setWeatherInfo(resultado);
+          });
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    getLocation(KEY);
   }, []);
 
   return (
     <NativeBaseProvider>
-      <Input onChangeText={guardarBusqueda} />
-      <Button onPress={onSubmit}>dale</Button>
-      <Box>Hello world</Box>
+      <Box width={'80%'} alignSelf={'center'}>
+        <Box mb={10} mt={5}>
+          <Input
+            onChangeText={setSearch}
+            value={search}
+            placeholder="Ingrese una Ciudad"
+            InputRightElement={<Button onPress={onSubmit}>Buscar</Button>}
+          />
+        </Box>
+        {weatherInfo?.name ? (
+          <Card weatherInfo={weatherInfo} />
+        ) : (
+          <Text>No se encotro la ciudad</Text>
+        )}
+      </Box>
     </NativeBaseProvider>
   );
 };
-
-const styles = StyleSheet.create({});
 
 export default App;
