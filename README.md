@@ -10,5 +10,4 @@ Realizado con react-native, para los estilos se utilizo native-base.
 npm install
 
 ### Ejecución de la aplicación
-npm start
-npm run android
+npm start, en otra terminal npm run android
